@@ -13,12 +13,12 @@ def rel_function(weight):
 class Config(object):
     def __init__(self,
                  # for test
-                 #num_range = [5,10],
-                 #weight_range =[1,10],
-                 #price_range=[1,10],
-                 num_range=[500, 1000],
-                 weight_range= [1, 100],
-                 price_range=[1, 100],
+                 num_range = [5,10],
+                 weight_range =[1,10],
+                 price_range=[1,10],
+                 #num_range=[500, 1000],
+                 #weight_range= [1, 100],
+                 #price_range=[1, 100],
                  volumn_ratio_set=[0.5, 2/3],
                  weight_rel=[False, True],
                  ):
