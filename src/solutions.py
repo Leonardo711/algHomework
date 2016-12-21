@@ -10,7 +10,7 @@ class solutionBase(object):
 
 # solution1: simulated annealing
 class anneal(solutionBase):
-    def __init__(self, problem, logger, run=30, T = 500, alpha = 0.9):
+    def __init__(self, problem, logger, run=30, T = 200, alpha = 0.8):
         self.problem = problem
         self.logger = logger
         self.run = run
@@ -43,13 +43,15 @@ class anneal(solutionBase):
         self.logger.info('初始解总价值: %s' % cur_price)
         iter = 0
         change_num = int(ceil(self.problem.num*0.01))
+        T = self.T
         while iter < self.run:
             tmp_opt = opt[:]
             for _ in range(change_num):
                 index = random.randint(0, self.problem.num-1)
                 tmp_opt[index] = 1- tmp_opt[index] if random.uniform(0,1)<0.9 else tmp_opt[index]# if 0 then 1 elseif 1 then 0
             tmp_weight = sum(tmp_opt[i]*self.problem.weights[i] for i in range(self.problem.num))
-            T = self.T * self.alpha
+            T *= self.alpha
+            print ('T:') ,T
             if tmp_weight > self.problem.volumn:
                 iter += 1
                 self.logger.info('迭代次数：%d' %iter)
