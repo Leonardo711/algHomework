@@ -1,8 +1,10 @@
 #!-*- coding=utf-8 -*-
+from __future__ import division
 import abc
 import random
 from math import ceil
 from math import exp
+import heapq
 class solutionBase(object):
     @abc.abstractmethod
     def solve(self):
@@ -194,7 +196,39 @@ class ga(solutionBase):
 # solution6: greedy method
 class greedy(solutionBase):
     def __init__(self, problem, logger):
-        pass
+        self.problem = problem
+        self.logger = logger
 
     def solve(self):
-        pass
+        wv_list = []
+        for index, weight in enumerate(self.problem.weights):
+            price = self.problem.prices[index]
+            heapq.heappush(wv_list, (-price/weight,-weight, -price, index))
+        cur_weight = 0
+        cur_price = 0
+        opt = [0]*self.problem.num
+        iter = 0
+        while 1:
+            iter += 1
+            try:
+                _, weight_, price_ , index= heapq.heappop(wv_list)
+            except:
+                break
+            weight = -weight_
+            price = - price_
+            tmp_weight = cur_weight + weight
+            if tmp_weight <= self.problem.volumn:
+                cur_weight = tmp_weight
+                cur_price += price
+                opt[index] = 1
+            self.logger.info('迭代次数：%d' %iter)
+            self.logger.info('当前背包内物品总重量: %s' %cur_weight)
+            self.logger.info('当前背包内物品总价值: %s' %cur_price)
+
+        self.logger.info('**************************************************************************************************')
+        self.logger.info('计算结果最大价值为%d' %cur_price)
+        self.logger.info('其中物品总重量为%s' %cur_weight)
+        self.logger.info('具体的选择为\n%r' %opt)
+        self.logger.info('**************************************************************************************************')
+        self.logger.info('-------贪心算法结束计算-------')
+        self.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
