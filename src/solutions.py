@@ -83,10 +83,53 @@ class anneal(solutionBase):
 # solution2: backtrack
 class backtrack(solutionBase):
     def __init__(self, problem, logger):
-        pass
+        self.problem = problem
+        self.logger = logger
+        self.cur_price = 0
+        self.cur_weight = 0
+        self.opt = [0] * self.problem.num
+        self.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        self.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        self.logger.info('-------回溯算法初始化成功-------')
 
     def solve(self):
-        pass
+        def BT(index, choosed, pre_opt):
+            if index>= self.problem.num:
+                pass
+            else:
+                cur_opt = pre_opt[:]
+                cur_opt[index] = choosed
+                if choosed:
+                    tmp_weight = sum(cur_opt[i] * self.problem.weights[i] for i in range(self.problem.num))
+                    if tmp_weight <= self.problem.volumn:
+                        tmp_price = sum(cur_opt[i] * self.problem.prices[i] for i in range(self.problem.num))
+                        if tmp_price>self.cur_price:
+                            self.cur_price = tmp_price
+                            self.opt = cur_opt
+                            self.logger.info('当前计算结果最大价值为%d' %self.cur_price)
+                        BT(index+1, 0, cur_opt)
+                        BT(index+1, 1, cur_opt)
+                else:
+                    BT(index+1, 0, pre_opt)
+                    BT(index+1, 1, pre_opt)
+        opt = self.opt[:]
+        BT(0, 0, opt)
+        BT(0, 1, opt)
+        self.cur_weight = sum(self.opt[i] * self.problem.weights[i] for i in range(self.problem.num))
+        self.logger.info('**************************************************************************************************')
+        self.logger.info('计算结果最大价值为%d' %self.cur_price)
+        self.logger.info('其中物品总重量为%s' %self.cur_weight)
+        self.logger.info('具体的选择为\n%r' %self.opt)
+        self.logger.info('**************************************************************************************************')
+        self.logger.info('-------回溯算法结束计算-------')
+        self.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+
+class Node(object):
+    def __init__(self, parent, current, price, weight):
+        self.parent = parent
+        self.current = current
+        self.price = price
+        self.weight = weight
 
 # solution3: branch and bound method
 class bound(solutionBase):
