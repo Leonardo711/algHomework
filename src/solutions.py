@@ -91,30 +91,46 @@ class backtrack(solutionBase):
         self.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         self.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         self.logger.info('-------回溯算法初始化成功-------')
-
+        self.iteration = 0
+	wv_list = []
+	for index, weight in enumerate(self.problem.weights):
+            price = self.problem.prices[index]
+            heapq.heappush(wv_list, (-price/weight,-weight, -price, index))
+        while 1:
+            try:
+                _, weight_, price_ , index= heapq.heappop(wv_list)
+                self.problem.weights[index] = -weight_	
+                self.problem.weights[index] = -weight_
+            except:
+                break
     def solve(self):
-        def BT(index, choosed, pre_opt):
-            if index>= self.problem.num:
-                pass
-            else:
+        def BT(index, choosed, pre_opt, pre_weight, pre_price, reserve_price):
+            #print('当前计算结果最大价值为%d' %self.cur_price)
+            if index < self.problem.num:
                 cur_opt = pre_opt[:]
-                cur_opt[index] = choosed
+                tmp_reserve = reserve_price - self.problem.prices[index]
                 if choosed:
-                    tmp_weight = sum(cur_opt[i] * self.problem.weights[i] for i in range(self.problem.num))
+                    tmp_weight = pre_weight + self.problem.weights[index]
+                    tmp_price = pre_price + self.problem.prices[index]
+                    t_reserve = pre_price + tmp_reserve
                     if tmp_weight <= self.problem.volumn:
-                        tmp_price = sum(cur_opt[i] * self.problem.prices[i] for i in range(self.problem.num))
+                        cur_opt[index] = choosed
                         if tmp_price>self.cur_price:
                             self.cur_price = tmp_price
+                            self.cur_weight = tmp_weight
                             self.opt = cur_opt
-                            self.logger.info('当前计算结果最大价值为%d' %self.cur_price)
-                        BT(index+1, 0, cur_opt)
-                        BT(index+1, 1, cur_opt)
+                            if self.iteration <100:
+                                self.iteration += 1
+                                self.logger.info('当前计算结果最大价值为%d' %self.cur_price)
+                        if t_reserve > self.cur_price:
+                            BT(index+1, 0, cur_opt, tmp_weight, tmp_price, tmp_reserve)
+                            BT(index+1, 1, cur_opt, tmp_weight, tmp_price, tmp_reserve)
                 else:
-                    BT(index+1, 0, pre_opt)
-                    BT(index+1, 1, pre_opt)
+                    BT(index+1, 0, cur_opt, pre_weight, pre_price, tmp_reserve)
+                    BT(index+1, 1, cur_opt, pre_weight, pre_price, tmp_reserve)
         opt = self.opt[:]
-        BT(0, 0, opt)
-        BT(0, 1, opt)
+        BT(0, 1, opt, 0, 0, sum(self.problem.prices))
+        BT(0, 0, opt, 0, 0, sum(self.problem.prices))
         self.cur_weight = sum(self.opt[i] * self.problem.weights[i] for i in range(self.problem.num))
         self.logger.info('**************************************************************************************************')
         self.logger.info('计算结果最大价值为%d' %self.cur_price)
@@ -184,12 +200,12 @@ class dynamic(solutionBase):
         def traceback(wv_tmp, jump_tmp, weights, prices):
             trace = [0] * (len(jump_tmp)-1)
             for i in range(1,len(jump_tmp)):
-                print 'i:', i
+                #print 'i:', i
                 if wv_tmp in jump_tmp[i]:
                     w_tmp = round(wv_tmp[0] - weights[i-1],1)
                     v_tmp = round(wv_tmp[1] - prices[i-1], 1)
                     wv_tmp = (w_tmp, v_tmp)
-                    print i-1
+                    #print i-1
                     trace[i-1] = 1
                 else:
                     print wv_tmp, jump_tmp[i]
