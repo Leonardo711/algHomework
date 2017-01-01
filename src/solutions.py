@@ -92,18 +92,72 @@ class backtrack(solutionBase):
         self.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         self.logger.info('-------回溯算法初始化成功-------')
         self.iteration = 0
-	wv_list = []
-	for index, weight in enumerate(self.problem.weights):
+        # decrease by price per weight
+        wv_list = []
+        for index, weight in enumerate(self.problem.weights):
             price = self.problem.prices[index]
             heapq.heappush(wv_list, (-price/weight,-weight, -price, index))
-        while 1:
-            try:
-                _, weight_, price_ , index= heapq.heappop(wv_list)
-                self.problem.weights[index] = -weight_	
-                self.problem.prices[index] = -price_
-            except:
-                break
+            while 1:
+                try:
+                    _, weight_, price_ , index= heapq.heappop(wv_list)
+                    self.problem.weights[index] = -weight_
+                    self.problem.prices[index] = -price_
+                except:
+                    break
     def solve(self):
+        def bound(cur_price, cur_weight, index, problem):
+            tmp_price = cur_price
+            tmp_weight = cur_weight
+            for i in range(index+1, problem.num):
+                if tmp_weight+problem.weights[i] <= problem.num:
+                    tmp_price += problem.prices[i]
+                else:
+                    tmp_price += (problem.volumn - tmp_weight)/problem.weights[i] * problem.prices[i]
+                    break
+            return tmp_price
+
+        cur_weight = cur_price = index = 0
+        best_p = -1
+        cur_opt = self.problem.num*[0]
+        choosed=self.problem.num * [0]
+        while 1:
+            while index < self.problem.num and cur_weight + self.problem.weights[index] <=self.problem.volumn:
+                cur_weight += self.problem.weights[index]
+                cur_price += self.problem.prices[index]
+                choosed[index] = 1
+                index += 1
+            if index >= self.problem.num:
+                if cur_price > best_p:
+                    best_p = cur_price
+                    self.logger.info('当前最优值为:%r' %best_p)
+                index = self.problem.num -1
+                #搜索到一个当前最好的结果时，保存在cur_opt中
+                for i in range(self.problem.num):
+                    cur_opt[i] = choosed[i]
+            else:
+                #如果还有物品，将下一件物品的choosed[index]=0
+                cur_opt[index] = 0
+            #print ('bound function %r' %bound(cur_price, cur_weight, index, self.problem))
+            while bound(cur_price, cur_weight, index, self.problem) <= best_p:
+                #self.logger.info('been here')
+                #print 'index:' ,index
+                while index>=0 and choosed[index] != 1:
+                    index -= 1
+                if index <= 0:
+                    #如果回溯到顶，说明已经遍历完所有结果
+                    self.logger.info('最优值为:%r' %best_p)
+                    return
+                #下面是已经找到了第一个choosed[index] = 1的节点，将其设为0，更新cur_weight, cur_price.再从该节点开始往下搜索
+                choosed[index] = 0
+                cur_weight -= self.problem.weights[index]
+                cur_price -= self.problem.prices[index]
+            #self.logger.info('sum of choosed  %r' % sum(i*choosed[i] for i in range(len(choosed))))
+            index += 1
+            #print 'index:' ,index
+        self.logger.info('最优值为:%r' %best_p)
+
+    # recursive way
+    def solve_recursive(self):
         def BT(index, choosed, pre_opt, pre_weight, pre_price):
             #print('当前计算结果最大价值为%d' %self.cur_price)
             if index < self.problem.num:
