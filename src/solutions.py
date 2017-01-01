@@ -100,41 +100,52 @@ class backtrack(solutionBase):
             try:
                 _, weight_, price_ , index= heapq.heappop(wv_list)
                 self.problem.weights[index] = -weight_	
-                self.problem.weights[index] = -weight_
+                self.problem.prices[index] = -price_
             except:
                 break
     def solve(self):
-        def BT(index, choosed, pre_opt, pre_weight, pre_price, reserve_price):
+        def BT(index, choosed, pre_opt, pre_weight, pre_price):
             #print('当前计算结果最大价值为%d' %self.cur_price)
             if index < self.problem.num:
                 cur_opt = pre_opt[:]
-                tmp_reserve = reserve_price - self.problem.prices[index]
+                cur_opt[index] = choosed
                 if choosed:
+                    tmp_price_all = pre_price
+                    tmp_weight_all = pre_weight
                     tmp_weight = pre_weight + self.problem.weights[index]
                     tmp_price = pre_price + self.problem.prices[index]
-                    t_reserve = pre_price + tmp_reserve
+                    tmp_index = index
                     if tmp_weight <= self.problem.volumn:
-                        cur_opt[index] = choosed
-                        if tmp_price>self.cur_price:
-                            self.cur_price = tmp_price
-                            self.cur_weight = tmp_weight
+                        if tmp_price > self.cur_price:
+                            self.cur_price = round(tmp_price, 1)
+                            self.cur_weight =round(tmp_weight, 1) 
                             self.opt = cur_opt
-                            if self.iteration <100:
-                                self.iteration += 1
-                                self.logger.info('当前计算结果最大价值为%d' %self.cur_price)
-                        if t_reserve > self.cur_price:
-                            BT(index+1, 0, cur_opt, tmp_weight, tmp_price, tmp_reserve)
-                            BT(index+1, 1, cur_opt, tmp_weight, tmp_price, tmp_reserve)
+                            self.iteration += 1
+                            if self.iteration % 100 == 0:
+                                self.logger.info('当前最优价格：%r' %self.cur_price)
+                                self.logger.info('当前重量: %r' %self.cur_weight)
+                            BT(index+1, 0, cur_opt, tmp_weight, tmp_price)
+                            BT(index+1, 1, cur_opt, tmp_weight, tmp_price)
+                        else:
+                            while (tmp_index<self.problem.num):
+                                tmp_weight_all += self.problem.weights[tmp_index]
+                                if tmp_weight_all <= self.problem.volumn:
+                                    tmp_price_all += self.problem.prices[tmp_index]
+                                else:
+                                    tmp_price_all += (self.problem.volumn-tmp_weight_all)/self.problem.weights[tmp_index] * self.problem.prices[tmp_index]
+                                tmp_index += 1
+                            if tmp_price_all > self.cur_price:
+                                BT(index+1, 0, cur_opt, tmp_weight, tmp_price)
+                                BT(index+1, 1, cur_opt, tmp_weight, tmp_price)
                 else:
-                    BT(index+1, 0, cur_opt, pre_weight, pre_price, tmp_reserve)
-                    BT(index+1, 1, cur_opt, pre_weight, pre_price, tmp_reserve)
+                    BT(index+1, 0, cur_opt, pre_weight, pre_price)
+                    BT(index+1, 1, cur_opt, pre_weight, pre_price)
         opt = self.opt[:]
-        BT(0, 1, opt, 0, 0, sum(self.problem.prices))
-        BT(0, 0, opt, 0, 0, sum(self.problem.prices))
-        self.cur_weight = sum(self.opt[i] * self.problem.weights[i] for i in range(self.problem.num))
+        BT(0, 1, opt, 0, 0)
+        BT(0, 0, opt, 0, 0)
         self.logger.info('**************************************************************************************************')
         self.logger.info('计算结果最大价值为%d' %self.cur_price)
-        self.logger.info('其中物品总重量为%s' %self.cur_weight)
+        self.logger.info('其中物品总重量为%r' %self.cur_weight)
         self.logger.info('具体的选择为\n%r' %self.opt)
         self.logger.info('**************************************************************************************************')
         self.logger.info('-------回溯算法结束计算-------')
@@ -257,6 +268,9 @@ class greedy(solutionBase):
     def __init__(self, problem, logger):
         self.problem = problem
         self.logger = logger
+        self.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        self.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        self.logger.info('-------贪心算法初始化成功-------')
 
     def solve(self):
         wv_list = []
